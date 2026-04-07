@@ -1,5 +1,5 @@
 # Moving Average Crossover Backtest Study
-### A beginner quant research project — by [Your Name]
+### A beginner quant research project — by Hiroki Kunu
 
 ---
 
