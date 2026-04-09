@@ -1,122 +1,117 @@
 # Moving Average Crossover Backtest Study
-### A beginner quant research project — by Hiroki Kunu
+
+**A beginner quant research project — by Hiroki Kunu**
 
 ---
 
 ## What This Project Is
 
-A systematic backtest of Moving Average (MA) crossover trading strategies across 6 assets over 10 years, built entirely in Python. The goal was to learn quantitative research methodology from scratch — not just to build a profitable strategy, but to understand *how to properly test* whether a strategy is real or just lucky.
+A systematic backtest of Moving Average (MA) crossover trading strategies across two separate studies, built entirely in Python. This is Part 1 of an ongoing strategy library being built toward an automated asset screener.
 
-This project covers:
-- Multi-asset backtesting (stocks, ETFs, and crypto)
-- Multi-parameter sensitivity analysis
-- Proper out-of-sample (train/test split) validation
-- Performance metrics: Sharpe ratio, Max Drawdown, Win Rate, Annualised Return
+The goal was not just to find a profitable strategy, but to understand *how to properly test whether a strategy is real or just lucky.*
 
 ---
 
-## Assets Tested
+## Two Studies
 
-| Ticker | Type |
-|--------|------|
-| AAPL | US Stock |
-| SPY | S&P 500 ETF |
-| TSLA | US Stock (high volatility) |
-| WM | US Stock (defensive) |
-| BTC-USD | Cryptocurrency |
-| ETH-USD | Cryptocurrency |
+### Study 1 — Original 6 Assets (Crypto + US Stocks)
+**Files:** `ma_multi_backtest.py`, `out_of_sample_test.py`
 
-**Data period:** January 2016 – April 2026 (10 years)
-**Data source:** Yahoo Finance via `yfinance`
+| Asset | Market | Type |
+|-------|--------|------|
+| AAPL | US | Large-cap tech |
+| SPY | US | S&P 500 index ETF |
+| TSLA | US | High-volatility growth |
+| WM | US | Defensive / utility-like |
+| BTC-USD | Crypto | Bitcoin |
+| ETH-USD | Crypto | Ethereum |
+
+### Study 2 — US + Australian ASX Stocks
+**File:** `Goofy MA for 6 assets.ipynb`
+
+| Asset | Market | Type |
+|-------|--------|------|
+| NVDA | US | High-growth tech / AI |
+| AAPL | US | Large-cap tech |
+| SPY | US | S&P 500 index ETF |
+| CBA.AX | ASX | Australian banking |
+| BHP.AX | ASX | Australian mining |
+| CSL.AX | ASX | Australian biotech |
 
 ---
 
-## MA Pairs Tested
+## How MA Crossover Works
 
-`(5,20)` `(10,30)` `(15,40)` `(20,50)` `(25,60)` `(30,70)` `(50,200)` `(100,200)`
+Two moving averages are calculated — a fast MA (short window) and a slow MA (long window). When the fast MA crosses above the slow MA, the trend is turning up — buy. When it crosses below — exit. It's a trend-following strategy that rides momentum rather than fighting it.
 
-The fast MA crossing above the slow MA = Buy signal. Crossing below = Exit to cash.
+---
+
+## Validation Method
+
+1. **Parameter robustness** — multiple MA pairs tested per asset to check results are consistent, not dependent on one lucky setting
+2. **Out-of-sample validation** — trained on 2016–2020 data only, tested on unseen 2021–2026 data
 
 ---
 
 ## Key Findings
 
-**1. Crypto responded best to MA strategies**
-ETH and BTC showed consistent outperformance over Buy & Hold in risk-adjusted terms (Sharpe > 1.0 in-sample). The strategy effectively avoided the major 80%+ crypto crashes while staying invested during bull runs.
+**Study 1 — Crypto + US Stocks**
 
-**2. Stable stocks favoured Buy & Hold**
-AAPL, SPY, and WM were better left as Buy & Hold. Their corrections are short and sharp — the MA strategy exits near the bottom and misses the recovery, consistently underperforming.
+ETH was the standout. The MA strategy didn't just reduce risk — it massively outperformed Buy & Hold in total return (5,424% vs 564%). The strategy successfully dodged the 80%+ crypto crashes while staying in during the big bull runs.
 
-**3. Sensitivity analysis confirmed BTC robustness**
-BTC's Sharpe ratio stayed consistently high (0.73–1.08) across all MA pairs, a sign the strategy works broadly on BTC and is not tuned to one specific parameter.
+BTC showed strong risk-adjusted performance (Sharpe > 1.0) across multiple MA pairs — a sign of robustness, not just one lucky parameter.
 
-**4. Out-of-sample testing revealed the reality**
-Training on 2016–2020 and testing on 2021–2026:
-- BTC Sharpe: 2.03 → 0.11 (−94.6%)
-- ETH Sharpe: 1.38 → 0.26 (−81.2%)
-- TSLA Sharpe: 1.33 → 0.44 (−66.9%) — only asset to beat Buy & Hold out-of-sample
+For stable stocks like AAPL and SPY, Buy & Hold was actually better. The MA strategy kept stepping out of the market during short corrections and missing the rebounds.
 
-The 2021–2026 period was choppy and mean-reverting, the worst possible environment for trend-following. This degradation is expected and is exactly why out-of-sample testing matters.
+The out-of-sample test was the reality check. Sharpe ratios dropped 80–95% for crypto when tested on 2021–2026. The post-2021 period was choppy and mean-reverting — exactly the worst environment for MA crossover strategies.
 
-**5. The main lesson**
-A simple MA crossover strategy that looks excellent in a 10-year bull market will degrade significantly when market conditions change. The gap between in-sample and out-of-sample performance is where real quantitative research begins.
+TSLA was the surprise — the only asset to beat Buy & Hold out-of-sample despite being the most suspicious going in.
+
+**Study 2 — US + ASX Stocks**
+
+MA works on smooth trending assets. SPY with MA5/20 held a Sharpe of 0.96 out-of-sample — the most stable result across both studies.
+
+NVDA confirmed the core weakness of MA — too slow to catch parabolic momentum. The strategy returned 262% vs Buy & Hold's 1,258% out-of-sample.
+
+CBA.AX (Commonwealth Bank) was the ASX standout — Sharpe actually improved from 0.19 in-sample to 0.48 out-of-sample, showing the strategy genuinely adapted to CBA's steady post-COVID trend.
+
+BHP.AX was the clearest failure — Sharpe collapsed from 0.92 to -0.11 out-of-sample. Commodity-driven, choppy stocks are poorly suited to trend-following.
 
 ---
 
-## Files
+## The Core Lesson
 
-| File | Description |
-|------|-------------|
-| `ma_multi_backtest.py` | Full multi-asset, multi-MA-pair backtest with heatmap and equity curves |
-| `out_of_sample_test.py` | Train/test split validation — 2016–2020 training, 2021–2026 testing |
+A strategy that looks perfect on historical data often breaks down on new data. That gap — between in-sample and out-of-sample — is where real quant research lives. The goal isn't to find a strategy that worked in the past. It's to find one robust enough to survive conditions it hasn't seen yet.
+
+Trend-following works best on assets that move in sustained, clean directions. It fails on parabolic momentum stocks, commodity-driven names, and anything choppy or mean-reverting.
+
+---
+
+## Part of a Larger Project
+
+- ✅ Strategy 1 — Moving Average Crossover (this repo)
+- ✅ Strategy 2 — RSI
+- ⬜ Strategy 3 — Bollinger Bands
+- ⬜ Strategy 4 — MACD
+- ⬜ Strategy 5 — Mean Reversion
+- ⬜ Phase 2 — Automated Screener
 
 ---
 
 ## How to Run
 
-**Requirements:**
-```
-pip install yfinance pandas numpy matplotlib
-```
-
-**Run the main backtest:**
-```
-python ma_multi_backtest.py
+```bash
+pip install yfinance numpy pandas matplotlib
 ```
 
-**Run the out-of-sample test:**
-```
-python out_of_sample_test.py
-```
+**Study 1:** Run `ma_multi_backtest.py` then `out_of_sample_test.py`
 
-Both scripts download data automatically from Yahoo Finance. No API key required.
+**Study 2:** Open `Goofy MA for 6 assets.ipynb` in Jupyter and run cells top to bottom
 
 ---
 
-## Output
+## Author
 
-Running the scripts produces:
-- Full comparison tables printed to console
-- Sharpe ratio heatmap (MA pair vs Ticker)
-- Equity curves (strategy vs Buy & Hold)
-- In-sample vs out-of-sample Sharpe bar chart
-- PNG files saved to working directory
-
----
-
-## What's Next
-
-- [ ] Add transaction cost modelling
-- [ ] Walk-forward analysis (rolling train/test windows)
-- [ ] Test additional strategies (RSI, Bollinger Bands, momentum)
-- [ ] Explore position sizing and risk management
-
----
-
-## Disclaimer
-
-This project is for educational purposes only. Nothing here is financial advice. Past performance does not indicate future results.
-
----
-
-*Built as part of a self-directed quant trading learning journey during final year of university.*
+**Hiroki Kunu**
+UQ Brisbane | Quantitative Research
+[LinkedIn](https://www.linkedin.com/in/hiroki-kunu-ba4218401) | [GitHub](https://github.com/GoofyisDAWG)
